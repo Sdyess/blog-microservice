@@ -19,7 +19,7 @@ var client *mongo.Client
 
 func getAllBlogPosts(w http.ResponseWriter, r *http.Request) {
 	var posts []models.Post
-	collection := client.Database(os.Getenv("MongoDatabase")).Collection("MongoCollection")
+	collection := client.Database(os.Getenv("MongoDatabase")).Collection(os.Getenv("MongoCollection"))
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	cursor, err := collection.Find(ctx, bson.M{})
 	if err != nil {
