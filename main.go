@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/blog-microservice/models"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -53,7 +54,7 @@ func main() {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	client, _ = mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MongoUri")))
-
+	fmt.Println("MongoUri: " + os.Getenv("MongoUri"))
 	router := mux.NewRouter()
 	router.HandleFunc("/blog/posts", getAllBlogPosts).Methods("GET")
 	router.HandleFunc("/blog/posts/{id}", getBlogPost).Methods("GET")
