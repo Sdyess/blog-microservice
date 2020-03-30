@@ -1,23 +1,44 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/blog-microservice/models"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
+var client *mongo.Client
+
 func getAllBlogPosts(w http.ResponseWriter, r *http.Request) {
-	const postContent = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse mauris ligula, bibendum sit amet ex eu, pharetra dignissim dui. Nunc sed imperdiet ligula, vitae ultricies justo. Donec vehicula pellentesque ligula. Integer sit amet diam finibus, blandit ligula a, pretium enim. Suspendisse semper neque rhoncus mattis lobortis. Ut commodo mollis nunc. Donec vehicula, nibh vel eleifend facilisis, purus odio efficitur nunc, nec facilisis enim dui ut enim. Phasellus et dolor eu massa aliquet vehicula varius et risus."
+	var posts []models.Post
+	collection := client.Database(os.Getenv("MongoDatabase")).Collection("MongoCollection")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var post models.Post
+		cursor.Decode(&post)
+		posts = append(posts, post)
+	}
+	if err := cursor.Err(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
 
-	post1 := models.Post{Id: 1, Title: "Blog Post 1", Content: postContent}
-	post2 := models.Post{Id: 2, Title: "Blog Post 2", Content: postContent}
-	post3 := models.Post{Id: 3, Title: "Blog Post 3", Content: postContent}
-
-	posts := []models.Post{post1, post2, post3}
 	postResp := models.Posts{Data: posts}
 
 	w.Header().Add("Content-Type", "application/json")
@@ -29,6 +50,9 @@ func getBlogPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	client, _ = mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MongoUri")))
 
 	router := mux.NewRouter()
 	router.HandleFunc("/blog/posts", getAllBlogPosts).Methods("GET")
