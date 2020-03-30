@@ -53,7 +53,11 @@ func getBlogPost(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	client, _ = mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MongoUri")))
+	var err error
+	client, err = mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MongoUri")))
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println("MongoUri: " + os.Getenv("MongoUri"))
 	router := mux.NewRouter()
 	router.HandleFunc("/blog/posts", getAllBlogPosts).Methods("GET")
