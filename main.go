@@ -59,7 +59,7 @@ func getBlogPost(w http.ResponseWriter, r *http.Request) {
 	postId := params["id"]
 
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	err := collection.FindOne(ctx, bson.D{{"id", postId}}).Decode(&post)
+	err := collection.FindOne(ctx, bson.M{"id": postId}).Decode(&post)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{ "message": "` + err.Error() + `" }`))
