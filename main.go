@@ -13,7 +13,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -57,9 +57,7 @@ func getBlogPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Collection: " + os.Getenv("MongoCollection"))
 
 	params := mux.Vars(r)
-	postId := params["id"]
-	fmt.Println("postId: " + postId)
-	fmt.Println(reflect.TypeOf(postId))
+	postId, _ := strconv.Atoi(params["id"])
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	err := collection.FindOne(ctx, bson.M{"id": postId}).Decode(&post)
 	if err != nil {
