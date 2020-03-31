@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 )
 
@@ -57,7 +58,8 @@ func getBlogPost(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	postId := params["id"]
-
+	fmt.Println("postId: " + postId)
+	fmt.Println(reflect.TypeOf(postId))
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	err := collection.FindOne(ctx, bson.M{"id": postId}).Decode(&post)
 	if err != nil {
