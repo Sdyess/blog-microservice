@@ -50,7 +50,24 @@ func getAllBlogPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBlogPost(w http.ResponseWriter, r *http.Request) {
+	var post models.Post
+	collection := client.Database(os.Getenv("MongoDatabase")).Collection(os.Getenv("MongoCollection"))
+	fmt.Println("Database: " + os.Getenv("MongoDatabase"))
+	fmt.Println("Collection: " + os.Getenv("MongoCollection"))
 
+	params := mux.Vars(r)
+	postId := params["id"]
+
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	err := collection.FindOne(ctx, bson.D{{"id", postId}}).Decode(&post)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{ "message": "` + err.Error() + `" }`))
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(post)
 }
 
 func main() {
